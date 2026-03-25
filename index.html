@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistant Maker Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar panel">
+        <div>
+          <p class="eyebrow">Assistant Raising Sim</p>
+          <h1>도우미 육성 기록부</h1>
+          <p class="muted">
+            지속형 AI 비서를 프메풍으로 온보딩하는 화면 프로토타입
+          </p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-head">
+            <span>이름</span>
+            <strong id="profileName">도라지</strong>
+          </div>
+          <div class="meter-group">
+            <label>실행력 <span id="execValue">54</span></label>
+            <div class="meter"><div id="execMeter"></div></div>
+          </div>
+          <div class="meter-group">
+            <label>정리력 <span id="organizeValue">62</span></label>
+            <div class="meter"><div id="organizeMeter"></div></div>
+          </div>
+          <div class="meter-group">
+            <label>친밀도 <span id="warmthValue">48</span></label>
+            <div class="meter"><div id="warmthMeter"></div></div>
+          </div>
+          <div class="meter-group">
+            <label>사유성 <span id="depthValue">57</span></label>
+            <div class="meter"><div id="depthMeter"></div></div>
+          </div>
+        </div>
+
+        <div class="panel mini-panel">
+          <div class="panel-title-row">
+            <h3>현재 빌드</h3>
+            <span class="chip" id="endingType">정리형 보좌관</span>
+          </div>
+          <ul id="traitList" class="trait-list"></ul>
+        </div>
+      </aside>
+
+      <main class="main-view">
+        <section class="hero panel">
+          <div>
+            <p class="eyebrow">Opening</p>
+            <h2>“아직 서툴지만, 잘 길러내면 함께 일할 수 있는 존재.”</h2>
+            <p class="muted">
+              이름, 독서 취향, 교육 방향을 정하면 비서의 말투와 일하는 방식이 달라집니다.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="primary" data-screen="birth">시작하기</button>
+            <button class="secondary" data-screen="ending">엔딩 미리보기</button>
+          </div>
+        </section>
+
+        <nav class="tabs">
+          <button class="tab active" data-screen="birth">탄생</button>
+          <button class="tab" data-screen="library">서재</button>
+          <button class="tab" data-screen="training">교육</button>
+          <button class="tab" data-screen="ending">엔딩</button>
+        </nav>
+
+        <section class="screen active panel" id="screen-birth">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Birth</p>
+              <h3>기본 설정</h3>
+            </div>
+            <span class="badge">초기 기질 결정</span>
+          </div>
+
+          <div class="grid two">
+            <label class="field">
+              <span>이름</span>
+              <input id="nameInput" type="text" value="도라지" placeholder="비서의 이름" />
+            </label>
+            <label class="field">
+              <span>역할</span>
+              <select id="roleSelect">
+                <option value="fairy">요정 비서</option>
+                <option value="maid">메이드형 도우미</option>
+                <option value="librarian">사서형 안내자</option>
+                <option value="operator">운영관형 파트너</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="choice-row">
+            <button class="choice selected" data-tone="warm">따뜻하고 생기 있게</button>
+            <button class="choice" data-tone="calm">차분하고 담백하게</button>
+            <button class="choice" data-tone="sharp">짧고 날렵하게</button>
+          </div>
+
+          <div class="preview-card">
+            <p class="eyebrow">응답 미리보기</p>
+            <blockquote id="tonePreview">
+              네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.
+            </blockquote>
+          </div>
+        </section>
+
+        <section class="screen panel" id="screen-library">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Library</p>
+              <h3>서재 기반 성향 추론</h3>
+            </div>
+            <span class="badge">설명 방식 / 정서 밀도 반영</span>
+          </div>
+
+          <div class="grid two">
+            <label class="field">
+              <span>좋아하는 책</span>
+              <textarea id="likedBooks" rows="5" placeholder="예: 데미안, 총균쇠, 어린 왕자"></textarea>
+            </label>
+            <label class="field">
+              <span>읽고 싶은 책</span>
+              <textarea id="wantedBooks" rows="5" placeholder="예: 사피엔스, 정의란 무엇인가"></textarea>
+            </label>
+          </div>
+
+          <div class="inference-box">
+            <p class="eyebrow">추론 결과</p>
+            <div id="bookInference" class="inference-text">
+              아직 입력 전입니다. 책 취향을 넣으면 설명 속도, 구조화 정도, 감정 밀도를 추정합니다.
+            </div>
+          </div>
+        </section>
+
+        <section class="screen panel" id="screen-training">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Training</p>
+              <h3>교육 방향 선택</h3>
+            </div>
+            <span class="badge">기초 → 심화 → 전용 스킬</span>
+          </div>
+
+          <div class="training-grid">
+            <button class="training-card selected" data-track="briefing">
+              <strong>보고 훈련</strong>
+              <p>결론 먼저, 핵심만, 압축 보고</p>
+            </button>
+            <button class="training-card" data-track="research">
+              <strong>조사 훈련</strong>
+              <p>출처 수집, 비교, 판단 포인트 정리</p>
+            </button>
+            <button class="training-card" data-track="planning">
+              <strong>기획 훈련</strong>
+              <p>아이디어 확장, 구조화, 반론 제시</p>
+            </button>
+            <button class="training-card" data-track="care">
+              <strong>관계 훈련</strong>
+              <p>거리감 조절, 말투, 정서 반응</p>
+            </button>
+          </div>
+
+          <div class="skill-tree panel inset">
+            <div class="skill-column">
+              <h4>기초</h4>
+              <ul>
+                <li>질문 이해</li>
+                <li>짧은 요약</li>
+                <li>기본 메모</li>
+              </ul>
+            </div>
+            <div class="skill-column">
+              <h4>심화</h4>
+              <ul id="advancedSkills"></ul>
+            </div>
+            <div class="skill-column">
+              <h4>전용 스킬</h4>
+              <ul id="customSkills"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen panel" id="screen-ending">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Ending</p>
+              <h3>실전 투입 전 최종 상태</h3>
+            </div>
+            <span class="badge success">작동 가능한 프로필</span>
+          </div>
+
+          <div class="ending-layout">
+            <div class="ending-card">
+              <p class="eyebrow">엔딩명</p>
+              <h2 id="endingTitle">정리형 보좌관 엔딩</h2>
+              <p id="endingSummary" class="muted">
+                짧고 실용적인 보고를 중심으로, 필요할 때만 확장하는 작업형 비서.
+              </p>
+            </div>
+            <div class="ending-card">
+              <p class="eyebrow">실전 작동 방식</p>
+              <ul id="workStyleList" class="work-style-list"></ul>
+            </div>
+          </div>
+
+          <div class="export-box">
+            <p class="eyebrow">Export Preview</p>
+            <pre id="jsonPreview"></pre>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

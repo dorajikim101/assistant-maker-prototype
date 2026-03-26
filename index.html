@@ -6,324 +6,164 @@
     <title>OpenClaw Fairy Maker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar panel">
+      <header class="topbar panel">
         <div>
           <p class="eyebrow">OpenClaw Fairy Maker</p>
-          <h1>요정 비서 육성 기록부</h1>
+          <h1>요정 비서 육성 화면 프로토타입</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="secondary" id="resetBtn">처음부터</button>
+        </div>
+      </header>
+
+      <section class="start-screen panel" id="startScreen">
+        <div class="start-copy">
+          <p class="eyebrow">Start</p>
+          <h2>작은 요정을, 함께 일할 수 있는 비서로 키웁니다.</h2>
           <p class="muted">
-            작은 요정 비서가 사용자 취향과 훈련에 따라 업무형 존재로 성장하는 프로토타입
+            이름, 말투, 책 취향, 훈련 선택에 따라 외형과 직능이 바뀝니다.
+            지금 화면은 컨셉 보드가 아니라 실제 진행형 게임 화면을 빠르게 검증하기 위한 1차 목업입니다.
           </p>
         </div>
 
-        <div class="fairy-panel panel-2">
-          <div class="fairy-stage" id="fairyStage">
-            <div class="fairy-halo"></div>
-            <div class="fairy-body"></div>
-            <div class="fairy-eyes"></div>
-            <div class="fairy-item" id="fairyItem"></div>
-          </div>
-          <div class="stage-meta">
-            <p class="eyebrow">Current Form</p>
-            <h3 id="formName">새싹 서재요정</h3>
-            <p class="muted" id="formSummary">
-              아직 작고 가벼운 존재. 책과 대화를 통해 말투와 직능이 잡히기 시작합니다.
-            </p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-head">
+        <div class="start-grid">
+          <label class="field">
             <span>이름</span>
-            <strong id="profileName">도라지</strong>
-          </div>
-          <div class="meter-group">
-            <label>실행력 <span id="execValue">54</span></label>
-            <div class="meter"><div id="execMeter"></div></div>
-          </div>
-          <div class="meter-group">
-            <label>정리력 <span id="organizeValue">62</span></label>
-            <div class="meter"><div id="organizeMeter"></div></div>
-          </div>
-          <div class="meter-group">
-            <label>친밀도 <span id="warmthValue">48</span></label>
-            <div class="meter"><div id="warmthMeter"></div></div>
-          </div>
-          <div class="meter-group">
-            <label>사유성 <span id="depthValue">57</span></label>
-            <div class="meter"><div id="depthMeter"></div></div>
+            <input id="nameInput" type="text" value="도라지" placeholder="비서의 이름" />
+          </label>
+          <label class="field">
+            <span>기본 역할</span>
+            <select id="roleSelect">
+              <option value="fairy">요정 비서</option>
+              <option value="librarian">서재 사서형</option>
+              <option value="office">안경 낀 사무형</option>
+              <option value="mechanic">메카닉 운영형</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field">
+          <span>첫 인상 말투</span>
+          <div class="option-row" id="toneOptions">
+            <button class="option selected" data-tone="warm">따뜻하고 생기 있게</button>
+            <button class="option" data-tone="calm">차분하고 담백하게</button>
+            <button class="option" data-tone="sharp">짧고 날렵하게</button>
           </div>
         </div>
 
-        <div class="panel mini-panel">
-          <div class="panel-title-row">
-            <h3>현재 빌드</h3>
-            <span class="chip" id="endingType">정리형 보좌관</span>
-          </div>
-          <ul id="traitList" class="trait-list"></ul>
+        <div class="field">
+          <span>좋아하는 책 / 읽고 싶은 책</span>
+          <textarea id="bookInput" rows="4" placeholder="예: 데미안, 총균쇠, 사피엔스, 어린 왕자"></textarea>
         </div>
-      </aside>
 
-      <main class="main-view">
-        <section class="hero panel">
-          <div>
-            <p class="eyebrow">Prototype Direction</p>
-            <h2>프메의 구조는 빌리되, 비주얼은 “서재의 요정 비서”로 독자화</h2>
-            <p class="muted">
-              이름, 독서 취향, 교관 훈련, 선택지에 따라 외형과 직능이 바뀌고 최종적으로 실전형 비서 프로필이 완성됩니다.
+        <div class="start-footer">
+          <div class="preview-quote" id="introPreview">네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.</div>
+          <button class="primary" id="startGameBtn">육성 시작</button>
+        </div>
+      </section>
+
+      <section class="game-screen" id="gameScreen">
+        <aside class="left-panel panel">
+          <div class="week-box">
+            <p class="eyebrow">Progress</p>
+            <div class="week-row">
+              <div>
+                <strong id="weekLabel">1주차</strong>
+                <p class="muted" id="phaseLabel">초기 적응기</p>
+              </div>
+              <span class="badge" id="endingChip">새싹형</span>
+            </div>
+          </div>
+
+          <div class="fairy-card">
+            <div class="fairy-stage" id="fairyStage">
+              <div class="fairy-aura"></div>
+              <div class="fairy-body"></div>
+              <div class="fairy-eyes"></div>
+              <div class="fairy-tool"></div>
+            </div>
+            <div class="fairy-meta">
+              <h3 id="fairyName">도라지</h3>
+              <p class="muted" id="formText">새싹 서재요정</p>
+            </div>
+          </div>
+
+          <div class="stats-card panel-sub">
+            <div class="stat-item">
+              <label>실행력 <span id="executionValue">50</span></label>
+              <div class="meter"><div id="executionMeter"></div></div>
+            </div>
+            <div class="stat-item">
+              <label>정리력 <span id="organizationValue">50</span></label>
+              <div class="meter"><div id="organizationMeter"></div></div>
+            </div>
+            <div class="stat-item">
+              <label>친밀도 <span id="warmthValue">50</span></label>
+              <div class="meter"><div id="warmthMeter"></div></div>
+            </div>
+            <div class="stat-item">
+              <label>사유성 <span id="depthValue">50</span></label>
+              <div class="meter"><div id="depthMeter"></div></div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="center-panel">
+          <section class="main-event panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Current Event</p>
+                <h2 id="eventTitle">첫 훈련을 시작할 준비가 되었습니다</h2>
+              </div>
+              <span class="badge soft" id="eventBadge">튜토리얼</span>
+            </div>
+            <p class="event-body" id="eventBody">
+              아직 어린 요정입니다. 어떤 훈련을 먼저 받을지에 따라 이후의 말투와 일하는 방식이 달라집니다.
             </p>
-          </div>
-          <div class="hero-actions">
-            <button class="primary" data-screen="birth">시작하기</button>
-            <button class="secondary" data-screen="art">아트디렉션 보기</button>
-          </div>
-        </section>
+            <div class="event-choices" id="eventChoices"></div>
+          </section>
 
-        <nav class="tabs">
-          <button class="tab active" data-screen="art">아트</button>
-          <button class="tab" data-screen="birth">탄생</button>
-          <button class="tab" data-screen="library">서재</button>
-          <button class="tab" data-screen="training">훈련</button>
-          <button class="tab" data-screen="ending">엔딩</button>
-        </nav>
-
-        <section class="screen active panel" id="screen-art">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Art Direction Board</p>
-              <h3>기본 방향 보드</h3>
-            </div>
-            <span class="badge">게임 문법 + assistant builder</span>
-          </div>
-
-          <div class="mood-grid">
-            <article class="mood-card selected-mood">
-              <p class="eyebrow">A. Main Route</p>
-              <h4>서재의 요정 비서</h4>
-              <p>잔광, 책, 기록, 작은 도구, 따뜻한 지성. 가장 기본이 되는 세계관.</p>
-              <div class="swatches">
-                <span style="background:#191c27"></span>
-                <span style="background:#6f63ff"></span>
-                <span style="background:#d6b46e"></span>
-                <span style="background:#8fe2d0"></span>
+          <section class="training-board panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Training</p>
+                <h3>이번 주 훈련 선택</h3>
               </div>
-            </article>
-            <article class="mood-card">
-              <p class="eyebrow">B. Growth Route</p>
-              <h4>메카닉 보좌관</h4>
-              <p>훈련이 심화되면 기계식 도구와 HUD가 붙어 사무적이고 정밀한 느낌으로 진화.</p>
-              <div class="swatches">
-                <span style="background:#11151f"></span>
-                <span style="background:#4fa3ff"></span>
-                <span style="background:#b3c2d9"></span>
-                <span style="background:#6ef1d3"></span>
-              </div>
-            </article>
-            <article class="mood-card">
-              <p class="eyebrow">C. Variant Route</p>
-              <h4>기묘한 커스텀 변이</h4>
-              <p>가재, 안경, 사무룩한 표정, 식물성 장식 등 사용자가 외형 키워드를 섞어 개성 강화.</p>
-              <div class="swatches">
-                <span style="background:#26171d"></span>
-                <span style="background:#ff8b6b"></span>
-                <span style="background:#ffd36f"></span>
-                <span style="background:#ffb4d6"></span>
-              </div>
-            </article>
+              <span class="badge soft">교관 AI 수업</span>
+            </div>
+            <div class="training-grid" id="trainingGrid"></div>
+          </section>
+        </main>
+
+        <aside class="right-panel panel">
+          <div class="panel-sub log-card">
+            <p class="eyebrow">Last Result</p>
+            <div id="resultText" class="log-text">아직 훈련 전입니다.</div>
           </div>
 
-          <div class="direction-grid">
-            <div class="direction-card">
-              <p class="eyebrow">Visual Rules</p>
-              <ul>
-                <li>레트로 UI 복제 금지, 구조만 차용</li>
-                <li>패널은 현대적 유리질감 + 약한 판타지 장식</li>
-                <li>캐릭터는 실루엣이 단순하고 변형이 쉬워야 함</li>
-                <li>스탯/훈련/엔딩이 실제 assistant 설정과 연결돼야 함</li>
-              </ul>
-            </div>
-            <div class="direction-card">
-              <p class="eyebrow">Evolution Logic</p>
-              <ul>
-                <li>시작: 작은 요정</li>
-                <li>책 취향: 분위기와 설명 방식 결정</li>
-                <li>훈련 교관: 직능과 태도 강화</li>
-                <li>기간 경과: 외형 파츠와 엔딩명 업데이트</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section class="screen panel" id="screen-birth">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Birth</p>
-              <h3>기본 설정</h3>
-            </div>
-            <span class="badge">초기 기질 결정</span>
+          <div class="panel-sub">
+            <p class="eyebrow">Traits</p>
+            <ul id="traitList" class="plain-list"></ul>
           </div>
 
-          <div class="grid two">
-            <label class="field">
-              <span>이름</span>
-              <input id="nameInput" type="text" value="도라지" placeholder="비서의 이름" />
-            </label>
-            <label class="field">
-              <span>역할</span>
-              <select id="roleSelect">
-                <option value="fairy">요정 비서</option>
-                <option value="maid">안경 낀 사무형 비서</option>
-                <option value="librarian">사서형 안내자</option>
-                <option value="operator">메카닉 운영관</option>
-              </select>
-            </label>
+          <div class="panel-sub">
+            <p class="eyebrow">Book Influence</p>
+            <div id="bookInfluence" class="log-text">책 취향이 입력되면 설명 방식과 외형 변화에 반영됩니다.</div>
           </div>
 
-          <div class="choice-row">
-            <button class="choice selected" data-tone="warm">따뜻하고 생기 있게</button>
-            <button class="choice" data-tone="calm">차분하고 담백하게</button>
-            <button class="choice" data-tone="sharp">짧고 날렵하게</button>
+          <div class="panel-sub ending-box">
+            <p class="eyebrow">Projected Ending</p>
+            <h3 id="endingTitle">정리형 보좌관 엔딩</h3>
+            <p class="muted" id="endingSummary">짧고 실용적인 보고를 중심으로, 필요할 때만 확장하는 작업형 비서.</p>
+            <button class="primary wide" id="advanceWeekBtn">다음 주 진행</button>
           </div>
-
-          <div class="preview-card">
-            <p class="eyebrow">응답 미리보기</p>
-            <blockquote id="tonePreview">
-              네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.
-            </blockquote>
-          </div>
-        </section>
-
-        <section class="screen panel" id="screen-library">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Library</p>
-              <h3>서재 기반 성향 추론</h3>
-            </div>
-            <span class="badge">설명 방식 / 정서 밀도 반영</span>
-          </div>
-
-          <div class="grid two">
-            <label class="field">
-              <span>좋아하는 책</span>
-              <textarea id="likedBooks" rows="5" placeholder="예: 데미안, 총균쇠, 어린 왕자"></textarea>
-            </label>
-            <label class="field">
-              <span>읽고 싶은 책</span>
-              <textarea id="wantedBooks" rows="5" placeholder="예: 사피엔스, 정의란 무엇인가"></textarea>
-            </label>
-          </div>
-
-          <div class="inference-box">
-            <p class="eyebrow">추론 결과</p>
-            <div id="bookInference" class="inference-text">
-              아직 입력 전입니다. 책 취향을 넣으면 설명 속도, 구조화 정도, 감정 밀도를 추정합니다.
-            </div>
-          </div>
-        </section>
-
-        <section class="screen panel" id="screen-training">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Training</p>
-              <h3>교관 AI와 훈련 선택</h3>
-            </div>
-            <span class="badge">기초 → 심화 → 전용 스킬</span>
-          </div>
-
-          <div class="trainer-strip">
-            <div class="trainer-card selected-trainer">
-              <strong>리포트 교관</strong>
-              <p>짧고 압축된 보고 습관 훈련</p>
-            </div>
-            <div class="trainer-card">
-              <strong>리서치 교관</strong>
-              <p>출처, 비교, 판단 근거 훈련</p>
-            </div>
-            <div class="trainer-card">
-              <strong>기획 교관</strong>
-              <p>아이디어 구조화와 반론 제시</p>
-            </div>
-            <div class="trainer-card">
-              <strong>관계 교관</strong>
-              <p>거리감, 말투, 정서 온도 조절</p>
-            </div>
-          </div>
-
-          <div class="training-grid">
-            <button class="training-card selected" data-track="briefing">
-              <strong>보고 훈련</strong>
-              <p>결론 먼저, 핵심만, 압축 보고</p>
-            </button>
-            <button class="training-card" data-track="research">
-              <strong>조사 훈련</strong>
-              <p>출처 수집, 비교, 판단 포인트 정리</p>
-            </button>
-            <button class="training-card" data-track="planning">
-              <strong>기획 훈련</strong>
-              <p>아이디어 확장, 구조화, 반론 제시</p>
-            </button>
-            <button class="training-card" data-track="care">
-              <strong>관계 훈련</strong>
-              <p>거리감 조절, 말투, 정서 반응</p>
-            </button>
-          </div>
-
-          <div class="skill-tree panel inset">
-            <div class="skill-column">
-              <h4>기초</h4>
-              <ul>
-                <li>질문 이해</li>
-                <li>짧은 요약</li>
-                <li>기본 메모</li>
-              </ul>
-            </div>
-            <div class="skill-column">
-              <h4>심화</h4>
-              <ul id="advancedSkills"></ul>
-            </div>
-            <div class="skill-column">
-              <h4>전용 스킬</h4>
-              <ul id="customSkills"></ul>
-            </div>
-          </div>
-        </section>
-
-        <section class="screen panel" id="screen-ending">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Ending</p>
-              <h3>실전 투입 전 최종 상태</h3>
-            </div>
-            <span class="badge success">작동 가능한 프로필</span>
-          </div>
-
-          <div class="ending-layout">
-            <div class="ending-card">
-              <p class="eyebrow">엔딩명</p>
-              <h2 id="endingTitle">정리형 보좌관 엔딩</h2>
-              <p id="endingSummary" class="muted">
-                짧고 실용적인 보고를 중심으로, 필요할 때만 확장하는 작업형 비서.
-              </p>
-            </div>
-            <div class="ending-card">
-              <p class="eyebrow">실전 작동 방식</p>
-              <ul id="workStyleList" class="work-style-list"></ul>
-            </div>
-          </div>
-
-          <div class="export-box">
-            <p class="eyebrow">Export Preview</p>
-            <pre id="jsonPreview"></pre>
-          </div>
-        </section>
-      </main>
+        </aside>
+      </section>
     </div>
 
     <script src="./script.js"></script>

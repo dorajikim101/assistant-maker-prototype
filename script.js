@@ -1,289 +1,359 @@
+const tonePreviewMap = {
+  warm: '네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.',
+  calm: '핵심부터 말씀드릴게요. 필요한 범위 안에서 조용하고 정확하게 정리합니다.',
+  sharp: '결론부터 말합니다. 군더더기 없이 바로 실행 가능한 형태로 답합니다.',
+};
+
+const trainingCards = [
+  {
+    id: 'briefing',
+    title: '보고 훈련',
+    trainer: '리포트 교관',
+    desc: '결론 먼저, 핵심만, 압축 보고',
+    effect: { execution: 7, organization: 10, warmth: -2, depth: 1 },
+    result: '답변이 짧고 또렷해졌습니다. 먼저 결론을 말하려는 습관이 붙었습니다.',
+  },
+  {
+    id: 'research',
+    title: '조사 훈련',
+    trainer: '리서치 교관',
+    desc: '출처 비교, 사실/판단 분리, 근거 정리',
+    effect: { execution: 2, organization: 6, warmth: 0, depth: 11 },
+    result: '무언가를 말할 때 근거를 먼저 찾고, 불확실성도 구분하려고 합니다.',
+  },
+  {
+    id: 'planning',
+    title: '기획 훈련',
+    trainer: '기획 교관',
+    desc: '아이디어 확장, 반론 제시, 구조화',
+    effect: { execution: 5, organization: 5, warmth: 1, depth: 8 },
+    result: '아이디어를 묶고 나누는 힘이 늘었습니다. 대안과 리스크를 함께 떠올립니다.',
+  },
+  {
+    id: 'care',
+    title: '관계 훈련',
+    trainer: '관계 교관',
+    desc: '거리감 조절, 말투 적응, 정서 온도 맞춤',
+    effect: { execution: 0, organization: 1, warmth: 12, depth: 4 },
+    result: '사용자와의 거리감을 더 자연스럽게 조절할 수 있게 되었습니다.',
+  },
+];
+
 const state = {
+  started: false,
   name: '도라지',
   role: 'fairy',
   tone: 'warm',
-  track: 'briefing',
-  likedBooks: '',
-  wantedBooks: '',
+  books: '',
+  week: 1,
+  phase: '초기 적응기',
   stats: {
-    execution: 54,
-    organization: 62,
-    warmth: 48,
-    depth: 57,
+    execution: 50,
+    organization: 50,
+    warmth: 50,
+    depth: 50,
   },
+  selectedTraining: null,
+  projectedEnding: '균형형 비서 엔딩',
+  traits: ['아직 형성 중', '사용자 취향을 학습하는 단계'],
 };
 
-const toneMap = {
-  warm: {
-    preview: '네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.',
-  },
-  calm: {
-    preview: '핵심부터 말씀드릴게요. 필요한 범위 안에서 조용하고 정확하게 정리합니다.',
-  },
-  sharp: {
-    preview: '결론부터 말합니다. 군더더기 없이 바로 실행 가능한 형태로 답합니다.',
-  },
+const refs = {
+  startScreen: document.getElementById('startScreen'),
+  gameScreen: document.getElementById('gameScreen'),
+  nameInput: document.getElementById('nameInput'),
+  roleSelect: document.getElementById('roleSelect'),
+  bookInput: document.getElementById('bookInput'),
+  introPreview: document.getElementById('introPreview'),
+  startGameBtn: document.getElementById('startGameBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  toneOptions: [...document.querySelectorAll('#toneOptions .option')],
+  weekLabel: document.getElementById('weekLabel'),
+  phaseLabel: document.getElementById('phaseLabel'),
+  endingChip: document.getElementById('endingChip'),
+  fairyName: document.getElementById('fairyName'),
+  formText: document.getElementById('formText'),
+  fairyStage: document.getElementById('fairyStage'),
+  executionValue: document.getElementById('executionValue'),
+  organizationValue: document.getElementById('organizationValue'),
+  warmthValue: document.getElementById('warmthValue'),
+  depthValue: document.getElementById('depthValue'),
+  executionMeter: document.getElementById('executionMeter'),
+  organizationMeter: document.getElementById('organizationMeter'),
+  warmthMeter: document.getElementById('warmthMeter'),
+  depthMeter: document.getElementById('depthMeter'),
+  eventTitle: document.getElementById('eventTitle'),
+  eventBadge: document.getElementById('eventBadge'),
+  eventBody: document.getElementById('eventBody'),
+  eventChoices: document.getElementById('eventChoices'),
+  trainingGrid: document.getElementById('trainingGrid'),
+  resultText: document.getElementById('resultText'),
+  traitList: document.getElementById('traitList'),
+  bookInfluence: document.getElementById('bookInfluence'),
+  endingTitle: document.getElementById('endingTitle'),
+  endingSummary: document.getElementById('endingSummary'),
+  advanceWeekBtn: document.getElementById('advanceWeekBtn'),
 };
 
-const trackMap = {
-  briefing: {
-    ending: '정리형 보좌관 엔딩',
-    chip: '정리형 보좌관',
-    summary: '짧고 실용적인 보고를 중심으로, 필요할 때만 확장하는 작업형 비서.',
-    traits: ['결론 먼저', '짧은 압축 보고', '중요한 것만 재강조'],
-    advanced: ['장문 구조화', '우선순위 표시', '한 줄 리마인드'],
-    custom: ['내 스타일 일일보고', '회의 요약 카드'],
-    workStyle: ['답변 첫 줄에 결론 배치', '길어질 경우 항목으로 쪼개기', '선택지 비교 시 차이점을 먼저 제시'],
-    statDelta: { organization: 10, execution: 4 },
-  },
-  research: {
-    ending: '조사형 분석관 엔딩',
-    chip: '조사형 분석관',
-    summary: '출처와 비교를 챙기며, 사실·판단·추론을 나눠 정리하는 리서치형 비서.',
-    traits: ['출처 중시', '비교형 정리', '판단 근거 명시'],
-    advanced: ['자료 대조', '신뢰도 표기', '반론 포인트'],
-    custom: ['링크 브리핑', '주제별 리서치팩'],
-    workStyle: ['주장과 근거를 분리', '가능하면 출처 첨부', '불확실성은 추론으로 표시'],
-    statDelta: { depth: 12, organization: 5 },
-  },
-  planning: {
-    ending: '기획형 설계자 엔딩',
-    chip: '기획형 설계자',
-    summary: '아이디어를 넓히고 묶고 반론까지 붙여 문서화 가능한 형태로 바꾸는 기획 파트너.',
-    traits: ['키워드 확장', '구조화', '반론 제시'],
-    advanced: ['문서 뼈대화', '대안 비교', '핵심 리스크 정리'],
-    custom: ['아이디어 평가 시트', '초안 생성 템플릿'],
-    workStyle: ['아이디어를 묶음으로 제시', '반대 관점도 함께 제공', '바로 문서화 가능한 소제목 사용'],
-    statDelta: { depth: 8, execution: 5, organization: 4 },
-  },
-  care: {
-    ending: '친화형 동반자 엔딩',
-    chip: '친화형 동반자',
-    summary: '거리감과 리듬을 맞추며, 부담 없이 오래 함께 쓰기 좋은 관계형 비서.',
-    traits: ['부드러운 거리감', '맥락 기억', '자연스러운 반응'],
-    advanced: ['상황별 온도 조절', '말투 적응', '과잉반응 억제'],
-    custom: ['일상 대화 모드', '기분 체크인 스킬'],
-    workStyle: ['과한 감정 표현은 줄이기', '사용자 리듬에 맞춘 응답 길이', '필요할 때만 친밀도를 올리기'],
-    statDelta: { warmth: 14, depth: 3 },
-  },
-};
-
-const roleMap = {
-  fairy: { form: '새싹 서재요정', summary: '작고 가벼운 시작 형태. 책과 대화를 통해 말투와 직능이 잡히기 시작합니다.' },
-  maid: { form: '안경 낀 사무요정', summary: '조금 더 사무적이고 실무형. 보고와 정리에 강한 비서상.' },
-  librarian: { form: '기록 사서요정', summary: '서재와 메모에 특화된 형태. 정리와 기억, 설명 구조가 강해집니다.' },
-  operator: { form: '메카닉 운영요정', summary: '장비와 HUD를 두른 정밀형. 자동화와 운영 감각이 강조됩니다.' },
-};
-
-const screens = document.querySelectorAll('.screen');
-const tabs = document.querySelectorAll('.tab');
-const navButtons = document.querySelectorAll('[data-screen]');
-const toneButtons = document.querySelectorAll('.choice');
-const trainingCards = document.querySelectorAll('.training-card');
-
-const nameInput = document.getElementById('nameInput');
-const roleSelect = document.getElementById('roleSelect');
-const likedBooks = document.getElementById('likedBooks');
-const wantedBooks = document.getElementById('wantedBooks');
-const tonePreview = document.getElementById('tonePreview');
-const bookInference = document.getElementById('bookInference');
-
-const profileName = document.getElementById('profileName');
-const endingType = document.getElementById('endingType');
-const traitList = document.getElementById('traitList');
-const advancedSkills = document.getElementById('advancedSkills');
-const customSkills = document.getElementById('customSkills');
-const endingTitle = document.getElementById('endingTitle');
-const endingSummary = document.getElementById('endingSummary');
-const workStyleList = document.getElementById('workStyleList');
-const jsonPreview = document.getElementById('jsonPreview');
-const formName = document.getElementById('formName');
-const formSummary = document.getElementById('formSummary');
-const fairyStage = document.getElementById('fairyStage');
-
-const statRefs = {
-  execution: ['execValue', 'execMeter'],
-  organization: ['organizeValue', 'organizeMeter'],
-  warmth: ['warmthValue', 'warmthMeter'],
-  depth: ['depthValue', 'depthMeter'],
-};
-
-function setScreen(screenId) {
-  screens.forEach((screen) => {
-    screen.classList.toggle('active', screen.id === `screen-${screenId}`);
-  });
-  tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.screen === screenId));
-}
-
-function clamp(num) {
-  return Math.max(0, Math.min(100, Math.round(num)));
+function clamp(v) {
+  return Math.max(0, Math.min(100, Math.round(v)));
 }
 
 function analyzeBooks() {
-  const text = `${state.likedBooks} ${state.wantedBooks}`.toLowerCase();
+  const text = state.books.toLowerCase();
   const tags = [];
-  let execution = 0;
-  let organization = 0;
-  let warmth = 0;
-  let depth = 0;
+  if (!text.trim()) {
+    return {
+      tags: ['책 취향 입력 전. 기본 균형형으로 진행됩니다.'],
+      bonus: { execution: 0, organization: 0, warmth: 0, depth: 0 },
+      formHint: 'fairy',
+    };
+  }
 
-  if (/철학|인문|정의|사유|역사|전기|문명/.test(text)) {
-    depth += 10;
-    tags.push('맥락과 해석을 중시하는 설명 선호');
+  const bonus = { execution: 0, organization: 0, warmth: 0, depth: 0 };
+  let formHint = 'fairy';
+
+  if (/철학|인문|역사|정의|전기|문명/.test(text)) {
+    bonus.depth += 6;
+    tags.push('맥락과 해석을 중시하는 성향');
+    formHint = 'librarian';
   }
   if (/에세이|소설|시|문학|어린 왕자|데미안/.test(text)) {
-    warmth += 8;
-    tags.push('문체와 정서 밀도가 있는 전달 선호');
+    bonus.warmth += 6;
+    tags.push('문체와 정서 밀도를 좋아함');
   }
-  if (/자기계발|업무|생산성|습관|정리|기획/.test(text)) {
-    organization += 10;
-    execution += 5;
-    tags.push('실용적이고 구조적인 답변 선호');
+  if (/자기계발|업무|생산성|기획|정리|습관/.test(text)) {
+    bonus.organization += 7;
+    bonus.execution += 4;
+    tags.push('실용적이고 구조적인 설명 선호');
+    formHint = 'office';
   }
-  if (/sf|추리|과학|기술|개발|코딩/.test(text)) {
-    depth += 6;
-    organization += 4;
-    tags.push('구조와 가설 중심의 전개 선호');
+  if (/sf|과학|기술|개발|코딩|시스템/.test(text)) {
+    bonus.depth += 4;
+    bonus.organization += 3;
+    tags.push('구조와 시스템 중심 사고 선호');
+    formHint = 'mechanic';
   }
-  if (/가재|새우|해양|심해/.test(text)) {
-    tags.push('기묘하고 개성 강한 외형 커스터마이즈 성향');
+  if (/가재|새우|갑각|심해|해양/.test(text)) {
+    tags.push('기묘한 커스텀 변이 선호');
+    formHint = 'crab';
   }
 
-  if (!tags.length) {
-    tags.push('입력된 책을 바탕으로 부드럽고 균형형 설명 스타일을 제안');
-  }
-
-  state.stats.execution = clamp(54 + execution + (trackMap[state.track].statDelta.execution || 0));
-  state.stats.organization = clamp(52 + organization + (trackMap[state.track].statDelta.organization || 0));
-  state.stats.warmth = clamp(46 + warmth + (trackMap[state.track].statDelta.warmth || 0));
-  state.stats.depth = clamp(50 + depth + (trackMap[state.track].statDelta.depth || 0));
-
-  return tags;
+  if (!tags.length) tags.push('입력된 책을 바탕으로 온화한 균형형 설명을 제안');
+  return { tags, bonus, formHint };
 }
 
-function renderList(el, items) {
-  el.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
+function getPhase(week) {
+  if (week <= 2) return '초기 적응기';
+  if (week <= 4) return '기초 성장기';
+  if (week <= 6) return '전문화 단계';
+  return '실전 투입 직전';
 }
 
-function resolveForm(bookTags) {
-  const text = `${state.likedBooks} ${state.wantedBooks}`.toLowerCase();
-  fairyStage.className = 'fairy-stage';
-
-  if (state.role === 'operator') {
-    fairyStage.classList.add('mech');
-    return {
-      name: '메카닉 운영요정',
-      summary: '운영 장비와 HUD를 두른 형태. 자동화와 정밀성이 강조됩니다.',
-    };
+function getEnding() {
+  const s = state.stats;
+  if (s.organization >= 72 && s.execution >= 65) {
+    return ['정리형 보좌관 엔딩', '짧고 실용적인 보고를 중심으로, 바로 일에 투입하기 좋은 실무형 비서입니다.', '정리형'];
   }
-
-  if (/가재|새우|해양|심해/.test(text)) {
-    fairyStage.classList.add('crab');
-    return {
-      name: '갑각 커스텀 요정',
-      summary: '기묘한 취향이 반영된 분기형 외형. 커스터마이즈 이미지 생성과 잘 어울립니다.',
-    };
+  if (s.depth >= 74) {
+    return ['조사형 분석관 엔딩', '출처와 맥락을 챙기며 사실·판단·추론을 구분하는 리서치형 비서입니다.', '조사형'];
   }
-
-  if (state.role === 'maid' || state.track === 'briefing') {
-    fairyStage.classList.add('office');
-    return {
-      name: '안경 낀 사무요정',
-      summary: '보고와 정리에 적응하며 점점 실무형 보좌관 같은 모습으로 성장합니다.',
-    };
+  if (s.warmth >= 74) {
+    return ['친화형 동반자 엔딩', '거리감을 안정적으로 맞추며 오래 함께 쓰기 좋은 관계형 비서입니다.', '친화형'];
   }
-
-  if (state.track === 'research' || state.role === 'librarian' || bookTags.some((tag) => tag.includes('맥락'))) {
-    return {
-      name: '기록 사서요정',
-      summary: '책과 메모의 흔적이 외형에 배어드는 형태. 조사와 설명 구조가 강화됩니다.',
-    };
+  if (s.execution >= 72 && s.depth >= 65) {
+    return ['기획형 설계자 엔딩', '아이디어를 확장하고 구조화하여 문서화 가능한 형태로 정리하는 비서입니다.', '기획형'];
   }
+  return ['균형형 운영 비서 엔딩', '정리, 응답, 판단을 평균 이상으로 수행하는 범용형 비서입니다.', '균형형'];
+}
 
-  return roleMap[state.role];
+function resolveForm() {
+  const { formHint } = analyzeBooks();
+  refs.fairyStage.className = 'fairy-stage';
+
+  if (formHint === 'crab') {
+    refs.fairyStage.classList.add('crab');
+    return '갑각 커스텀 요정';
+  }
+  if (state.role === 'mechanic' || state.stats.execution + state.stats.organization > 150) {
+    refs.fairyStage.classList.add('mechanic');
+    return '메카닉 운영요정';
+  }
+  if (state.role === 'office' || state.stats.organization >= 68) {
+    refs.fairyStage.classList.add('office');
+    return '안경 낀 사무요정';
+  }
+  if (state.role === 'librarian' || formHint === 'librarian' || state.stats.depth >= 68) {
+    refs.fairyStage.classList.add('librarian');
+    return '기록 사서요정';
+  }
+  return '새싹 서재요정';
+}
+
+function renderTrainingGrid() {
+  refs.trainingGrid.innerHTML = trainingCards
+    .map(
+      (card) => `
+        <button class="training-card" data-id="${card.id}">
+          <strong>${card.title}</strong>
+          <small>${card.trainer} · ${card.desc}</small>
+        </button>`,
+    )
+    .join('');
+
+  [...refs.trainingGrid.querySelectorAll('.training-card')].forEach((button) => {
+    button.addEventListener('click', () => applyTraining(button.dataset.id));
+  });
+}
+
+function renderEventChoices() {
+  const choices = [
+    {
+      title: '설명은 짧게, 결론 먼저',
+      text: '실용성과 정리력을 빠르게 올립니다.',
+      onClick: () => applyChoice('brief'),
+    },
+    {
+      title: '조금 더 다정하고 자연스럽게',
+      text: '친밀도와 장기 사용감을 높입니다.',
+      onClick: () => applyChoice('warm'),
+    },
+    {
+      title: '근거를 챙기고 신중하게',
+      text: '사유성과 조사 습관을 강화합니다.',
+      onClick: () => applyChoice('depth'),
+    },
+    {
+      title: '먼저 해보고 정리해오기',
+      text: '실행형 비서 쪽으로 기울게 만듭니다.',
+      onClick: () => applyChoice('action'),
+    },
+  ];
+
+  refs.eventChoices.innerHTML = choices
+    .map(
+      (choice, index) => `
+        <button class="choice-card" data-index="${index}">
+          <strong>${choice.title}</strong>
+          <small>${choice.text}</small>
+        </button>`,
+    )
+    .join('');
+
+  [...refs.eventChoices.querySelectorAll('.choice-card')].forEach((button) => {
+    const item = choices[Number(button.dataset.index)];
+    button.addEventListener('click', item.onClick);
+  });
+}
+
+function applyChoice(type) {
+  if (type === 'brief') {
+    state.stats.organization += 4;
+    state.stats.execution += 3;
+    refs.resultText.textContent = '요정이 답변 첫 줄에 결론을 놓는 습관을 익혔습니다.';
+  }
+  if (type === 'warm') {
+    state.stats.warmth += 5;
+    refs.resultText.textContent = '요정이 말투의 온도를 더 자연스럽게 맞추기 시작했습니다.';
+  }
+  if (type === 'depth') {
+    state.stats.depth += 5;
+    refs.resultText.textContent = '요정이 바로 답하기보다 맥락과 근거를 먼저 보는 경향이 생겼습니다.';
+  }
+  if (type === 'action') {
+    state.stats.execution += 5;
+    refs.resultText.textContent = '요정이 먼저 해보고 정리해서 가져오는 쪽으로 성장했습니다.';
+  }
+  normalizeStats();
+  render();
+}
+
+function applyTraining(id) {
+  const training = trainingCards.find((card) => card.id === id);
+  state.selectedTraining = id;
+  Object.entries(training.effect).forEach(([key, value]) => {
+    state.stats[key] += value;
+  });
+  refs.resultText.textContent = `${training.trainer} 수업 완료. ${training.result}`;
+  normalizeStats();
+  render();
+}
+
+function normalizeStats() {
+  const bonus = analyzeBooks().bonus;
+  state.stats.execution = clamp(state.stats.execution + 0);
+  state.stats.organization = clamp(state.stats.organization + 0);
+  state.stats.warmth = clamp(state.stats.warmth + 0);
+  state.stats.depth = clamp(state.stats.depth + 0);
+  // lightweight book influence, applied as display hint not cumulative loop
+  state.bookBonus = bonus;
+}
+
+function advanceWeek() {
+  state.week += 1;
+  state.phase = getPhase(state.week);
+  refs.eventTitle.textContent = `${state.week}주차 성장 이벤트`;
+  refs.eventBadge.textContent = state.phase;
+  refs.eventBody.textContent = '이번 주의 훈련 결과가 누적되었습니다. 다음 선택으로 외형과 엔딩 방향이 더 또렷해집니다.';
+  refs.resultText.textContent = `${state.week}주차로 넘어갔습니다. 외형과 직능이 조금 더 굳어집니다.`;
+  render();
 }
 
 function render() {
-  profileName.textContent = state.name || '이름 없음';
-  tonePreview.textContent = toneMap[state.tone].preview;
+  const bookData = analyzeBooks();
+  const ending = getEnding();
+  state.projectedEnding = ending[0];
+  refs.weekLabel.textContent = `${state.week}주차`;
+  refs.phaseLabel.textContent = state.phase;
+  refs.endingChip.textContent = ending[2];
+  refs.fairyName.textContent = state.name;
+  refs.formText.textContent = resolveForm();
+  refs.executionValue.textContent = clamp(state.stats.execution + (state.bookBonus?.execution || 0));
+  refs.organizationValue.textContent = clamp(state.stats.organization + (state.bookBonus?.organization || 0));
+  refs.warmthValue.textContent = clamp(state.stats.warmth + (state.bookBonus?.warmth || 0));
+  refs.depthValue.textContent = clamp(state.stats.depth + (state.bookBonus?.depth || 0));
+  refs.executionMeter.style.width = `${refs.executionValue.textContent}%`;
+  refs.organizationMeter.style.width = `${refs.organizationValue.textContent}%`;
+  refs.warmthMeter.style.width = `${refs.warmthValue.textContent}%`;
+  refs.depthMeter.style.width = `${refs.depthValue.textContent}%`;
+  refs.bookInfluence.textContent = bookData.tags.join(' · ');
+  refs.endingTitle.textContent = ending[0];
+  refs.endingSummary.textContent = ending[1];
 
-  const trackInfo = trackMap[state.track];
-  endingType.textContent = trackInfo.chip;
-  endingTitle.textContent = trackInfo.ending;
-  endingSummary.textContent = trackInfo.summary;
-
-  const bookTags = analyzeBooks();
-  bookInference.textContent = bookTags.join(' · ');
-
-  const currentForm = resolveForm(bookTags);
-  formName.textContent = currentForm.name;
-  formSummary.textContent = currentForm.summary;
-
-  renderList(traitList, trackInfo.traits);
-  renderList(advancedSkills, trackInfo.advanced);
-  renderList(customSkills, trackInfo.custom);
-  renderList(workStyleList, trackInfo.workStyle);
-
-  Object.entries(statRefs).forEach(([key, [valueId, meterId]]) => {
-    const val = state.stats[key];
-    document.getElementById(valueId).textContent = val;
-    document.getElementById(meterId).style.width = `${val}%`;
-  });
-
-  jsonPreview.textContent = JSON.stringify(
-    {
-      assistantName: state.name,
-      role: state.role,
-      currentForm: currentForm.name,
-      tone: state.tone,
-      trainingTrack: state.track,
-      trainers: ['리포트 교관', '리서치 교관', '기획 교관', '관계 교관'],
-      inferredFromBooks: bookTags,
-      ending: trackInfo.ending,
-      workStyle: trackInfo.workStyle,
-      imagePromptSeed: `${currentForm.name}, ${trackInfo.chip}, ${state.tone} tone, fantasy assistant, growth-stage design`,
-      stats: state.stats,
-    },
-    null,
-    2,
-  );
+  const traits = [];
+  if (Number(refs.organizationValue.textContent) >= 65) traits.push('결론 먼저');
+  if (Number(refs.executionValue.textContent) >= 65) traits.push('먼저 정리해서 가져오기');
+  if (Number(refs.depthValue.textContent) >= 65) traits.push('근거와 맥락 중시');
+  if (Number(refs.warmthValue.textContent) >= 65) traits.push('거리감 조절 우수');
+  if (!traits.length) traits.push('아직 형성 중', '사용자 취향을 학습하는 단계');
+  refs.traitList.innerHTML = traits.map((t) => `<li>${t}</li>`).join('');
 }
 
-nameInput.addEventListener('input', (e) => {
-  state.name = e.target.value;
+function startGame() {
+  state.started = true;
+  state.name = refs.nameInput.value.trim() || '도라지';
+  state.role = refs.roleSelect.value;
+  state.books = refs.bookInput.value.trim();
+  state.phase = getPhase(state.week);
+  refs.startScreen.style.display = 'none';
+  refs.gameScreen.classList.add('active');
+  normalizeStats();
+  renderTrainingGrid();
+  renderEventChoices();
   render();
-});
-roleSelect.addEventListener('change', (e) => {
-  state.role = e.target.value;
-  render();
-});
-likedBooks.addEventListener('input', (e) => {
-  state.likedBooks = e.target.value;
-  render();
-});
-wantedBooks.addEventListener('input', (e) => {
-  state.wantedBooks = e.target.value;
-  render();
-});
+}
 
-toneButtons.forEach((button) => {
+refs.toneOptions.forEach((button) => {
   button.addEventListener('click', () => {
-    toneButtons.forEach((btn) => btn.classList.remove('selected'));
+    refs.toneOptions.forEach((btn) => btn.classList.remove('selected'));
     button.classList.add('selected');
     state.tone = button.dataset.tone;
-    render();
+    refs.introPreview.textContent = tonePreviewMap[state.tone];
   });
-});
-trainingCards.forEach((card) => {
-  card.addEventListener('click', () => {
-    trainingCards.forEach((item) => item.classList.remove('selected'));
-    card.classList.add('selected');
-    state.track = card.dataset.track;
-    render();
-  });
-});
-navButtons.forEach((button) => {
-  button.addEventListener('click', () => setScreen(button.dataset.screen));
 });
 
-render();
+refs.startGameBtn.addEventListener('click', startGame);
+refs.advanceWeekBtn.addEventListener('click', advanceWeek);
+refs.resetBtn.addEventListener('click', () => window.location.reload());
+
+refs.introPreview.textContent = tonePreviewMap[state.tone];

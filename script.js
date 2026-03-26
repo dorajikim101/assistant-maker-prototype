@@ -16,18 +16,12 @@ const state = {
 const toneMap = {
   warm: {
     preview: '네, 바로 정리해둘게요. 필요한 말만 짧고 또렷하게 가져올게요.',
-    warmth: 8,
-    depth: 2,
   },
   calm: {
     preview: '핵심부터 말씀드릴게요. 필요한 범위 안에서 조용하고 정확하게 정리합니다.',
-    warmth: 2,
-    organization: 6,
   },
   sharp: {
     preview: '결론부터 말합니다. 군더더기 없이 바로 실행 가능한 형태로 답합니다.',
-    execution: 8,
-    organization: 3,
   },
 };
 
@@ -74,6 +68,13 @@ const trackMap = {
   },
 };
 
+const roleMap = {
+  fairy: { form: '새싹 서재요정', summary: '작고 가벼운 시작 형태. 책과 대화를 통해 말투와 직능이 잡히기 시작합니다.' },
+  maid: { form: '안경 낀 사무요정', summary: '조금 더 사무적이고 실무형. 보고와 정리에 강한 비서상.' },
+  librarian: { form: '기록 사서요정', summary: '서재와 메모에 특화된 형태. 정리와 기억, 설명 구조가 강해집니다.' },
+  operator: { form: '메카닉 운영요정', summary: '장비와 HUD를 두른 정밀형. 자동화와 운영 감각이 강조됩니다.' },
+};
+
 const screens = document.querySelectorAll('.screen');
 const tabs = document.querySelectorAll('.tab');
 const navButtons = document.querySelectorAll('[data-screen]');
@@ -96,6 +97,9 @@ const endingTitle = document.getElementById('endingTitle');
 const endingSummary = document.getElementById('endingSummary');
 const workStyleList = document.getElementById('workStyleList');
 const jsonPreview = document.getElementById('jsonPreview');
+const formName = document.getElementById('formName');
+const formSummary = document.getElementById('formSummary');
+const fairyStage = document.getElementById('fairyStage');
 
 const statRefs = {
   execution: ['execValue', 'execMeter'],
@@ -141,6 +145,9 @@ function analyzeBooks() {
     organization += 4;
     tags.push('구조와 가설 중심의 전개 선호');
   }
+  if (/가재|새우|해양|심해/.test(text)) {
+    tags.push('기묘하고 개성 강한 외형 커스터마이즈 성향');
+  }
 
   if (!tags.length) {
     tags.push('입력된 책을 바탕으로 부드럽고 균형형 설명 스타일을 제안');
@@ -158,11 +165,47 @@ function renderList(el, items) {
   el.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
 }
 
+function resolveForm(bookTags) {
+  const text = `${state.likedBooks} ${state.wantedBooks}`.toLowerCase();
+  fairyStage.className = 'fairy-stage';
+
+  if (state.role === 'operator') {
+    fairyStage.classList.add('mech');
+    return {
+      name: '메카닉 운영요정',
+      summary: '운영 장비와 HUD를 두른 형태. 자동화와 정밀성이 강조됩니다.',
+    };
+  }
+
+  if (/가재|새우|해양|심해/.test(text)) {
+    fairyStage.classList.add('crab');
+    return {
+      name: '갑각 커스텀 요정',
+      summary: '기묘한 취향이 반영된 분기형 외형. 커스터마이즈 이미지 생성과 잘 어울립니다.',
+    };
+  }
+
+  if (state.role === 'maid' || state.track === 'briefing') {
+    fairyStage.classList.add('office');
+    return {
+      name: '안경 낀 사무요정',
+      summary: '보고와 정리에 적응하며 점점 실무형 보좌관 같은 모습으로 성장합니다.',
+    };
+  }
+
+  if (state.track === 'research' || state.role === 'librarian' || bookTags.some((tag) => tag.includes('맥락'))) {
+    return {
+      name: '기록 사서요정',
+      summary: '책과 메모의 흔적이 외형에 배어드는 형태. 조사와 설명 구조가 강화됩니다.',
+    };
+  }
+
+  return roleMap[state.role];
+}
+
 function render() {
   profileName.textContent = state.name || '이름 없음';
-
-  const toneInfo = toneMap[state.tone];
-  tonePreview.textContent = toneInfo.preview;
+  tonePreview.textContent = toneMap[state.tone].preview;
 
   const trackInfo = trackMap[state.track];
   endingType.textContent = trackInfo.chip;
@@ -171,6 +214,10 @@ function render() {
 
   const bookTags = analyzeBooks();
   bookInference.textContent = bookTags.join(' · ');
+
+  const currentForm = resolveForm(bookTags);
+  formName.textContent = currentForm.name;
+  formSummary.textContent = currentForm.summary;
 
   renderList(traitList, trackInfo.traits);
   renderList(advancedSkills, trackInfo.advanced);
@@ -187,11 +234,14 @@ function render() {
     {
       assistantName: state.name,
       role: state.role,
+      currentForm: currentForm.name,
       tone: state.tone,
       trainingTrack: state.track,
+      trainers: ['리포트 교관', '리서치 교관', '기획 교관', '관계 교관'],
       inferredFromBooks: bookTags,
       ending: trackInfo.ending,
       workStyle: trackInfo.workStyle,
+      imagePromptSeed: `${currentForm.name}, ${trackInfo.chip}, ${state.tone} tone, fantasy assistant, growth-stage design`,
       stats: state.stats,
     },
     null,
@@ -203,17 +253,14 @@ nameInput.addEventListener('input', (e) => {
   state.name = e.target.value;
   render();
 });
-
 roleSelect.addEventListener('change', (e) => {
   state.role = e.target.value;
   render();
 });
-
 likedBooks.addEventListener('input', (e) => {
   state.likedBooks = e.target.value;
   render();
 });
-
 wantedBooks.addEventListener('input', (e) => {
   state.wantedBooks = e.target.value;
   render();
@@ -227,7 +274,6 @@ toneButtons.forEach((button) => {
     render();
   });
 });
-
 trainingCards.forEach((card) => {
   card.addEventListener('click', () => {
     trainingCards.forEach((item) => item.classList.remove('selected'));
@@ -236,7 +282,6 @@ trainingCards.forEach((card) => {
     render();
   });
 });
-
 navButtons.forEach((button) => {
   button.addEventListener('click', () => setScreen(button.dataset.screen));
 });
